@@ -1,11 +1,21 @@
 using JWT_Test_Api.Helpers;
+using JWT_Test_Api.Models;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ApplicationDbContext>(
+    options => options.UseSqlServer(
+            connectionString,
+            b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)
+        ));
 
 IConfiguration config = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json")
     .AddEnvironmentVariables()
     .Build();
+
 
 // Add services to the container.
 builder.Services.AddControllers();
