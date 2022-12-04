@@ -1,5 +1,6 @@
 using JWT_Test_Api.Helpers;
 using JWT_Test_Api.Models;
+using JWT_Test_Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +26,8 @@ builder.Services.AddSwaggerGen();
 
 //builder.Services.Configure<JWT>(config);
 builder.Services.Configure<JWT>(config.GetSection("JWT"));
+
+builder.Services.AddTransient<IAuthService, AuthService>();
 
 var app = builder.Build();
 

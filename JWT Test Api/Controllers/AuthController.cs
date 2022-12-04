@@ -1,11 +1,8 @@
 ﻿using JWT_Test_Api.Helpers;
 using JWT_Test_Api.Models;
+using JWT_Test_Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
 
 namespace JWT_Test_Api.Controllers
 {
@@ -14,76 +11,37 @@ namespace JWT_Test_Api.Controllers
 
         private static readonly User _user = new();
         private readonly JWT _jWT;
+        private readonly IAuthService _authService;
 
-        public AuthController(IOptions<JWT> jWT)
+        public AuthController(IAuthService authService, IOptions<JWT> jWT)
         {
             _jWT = jWT.Value;
+            _authService = authService;
         }
 
         [HttpPost("register")]
         public async Task<ActionResult<User>> Register(UserDto request)
         {
-            CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            var user = _authService.RegisterAsync(request);
 
-            _user.Username = request.Username;
-            _user.PasswordHash = passwordHash;
-            _user.PasswordSalt = passwordSalt;
+            if (user == null)
+            {
+                return BadRequest("User Found");
+            }
 
-            return Ok(_user);
+            return Ok(user);
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<string>> Login(UserDto request)
         {
-            if (_user.Username != request.Username)
+            var token = _authService.LoginAsync(request);
+            if (token == null)
             {
-                return BadRequest("User not found.");
+                return BadRequest("Something Wrong");
             }
 
-            if (!VerifyPasswordHash(request.Password, _user.PasswordHash, _user.PasswordSalt))
-            {
-                return BadRequest("Wrong password.");
-            }
-
-            string token = CreateToken(_user);
             return Ok(token);
-        }
-
-
-        private string CreateToken(User user)
-        {
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, "Admin")
-            };
-
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_jWT.Key));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-
-            var token = new JwtSecurityToken(
-                claims: claims,
-                expires: DateTime.Now.AddDays(1),
-                signingCredentials: creds);
-
-            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-
-            return jwt;
-        }
-
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            using var hmac = new HMACSHA512();
-            passwordSalt = hmac.Key;
-            passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-        }
-
-        private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
-        {
-            using var hmac = new HMACSHA512(passwordSalt);
-            var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            return computedHash.SequenceEqual(passwordHash);
         }
     }
 }
