@@ -2,10 +2,6 @@
 using JWT_Test_Api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
 
 namespace JWT_Test_Api.Services
 {
@@ -13,7 +9,6 @@ namespace JWT_Test_Api.Services
     {
         private readonly JWT _jwt;
         private readonly ApplicationDbContext _context;
-        //private static readonly User _user = new();
 
         public AuthService(IOptions<JWT> jwt, ApplicationDbContext context)
         {
@@ -29,7 +24,7 @@ namespace JWT_Test_Api.Services
                 return null;
             }
 
-            CreatePasswordHash(userDto.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            TokenHelper.CreatePasswordHash(userDto.Password, out byte[] passwordHash, out byte[] passwordSalt);
 
             var user = new User
             {
@@ -43,12 +38,6 @@ namespace JWT_Test_Api.Services
             return user;
         }
 
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            using var hmac = new HMACSHA512();
-            passwordSalt = hmac.Key;
-            passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-        }
 
         public async Task<string?> LoginAsync(UserDto userDto)
         {
@@ -59,45 +48,14 @@ namespace JWT_Test_Api.Services
                 return null;
             }
 
-            if (!VerifyPasswordHash(userDto.Password, user.PasswordHash, user.PasswordSalt))
+            if (!TokenHelper.VerifyPasswordHash(userDto.Password, user.PasswordHash, user.PasswordSalt))
             {
                 return null;
             }
 
-            string token = CreateToken(user);
+            string token = TokenHelper.CreateToken(user, _jwt.Key);
 
             return token;
-        }
-
-        private string CreateToken(User user)
-        {
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, "Admin")
-            };
-
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_jwt.Key));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-
-            var token = new JwtSecurityToken(
-                claims: claims,
-                expires: DateTime.Now.AddDays(1),
-                signingCredentials: creds
-            );
-
-            var jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
-
-            return jwtToken;
-        }
-
-
-        private bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
-        {
-            using var hmac = new HMACSHA512(passwordSalt);
-            var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            return computedHash.SequenceEqual(passwordHash);
         }
     }
 }
