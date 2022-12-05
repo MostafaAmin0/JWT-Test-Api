@@ -6,17 +6,12 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<ApplicationDbContext>(
     options => options.UseSqlServer(
             connectionString,
             b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)
         ));
-
-IConfiguration config = new ConfigurationBuilder()
-    .AddJsonFile("appsettings.json")
-    .AddEnvironmentVariables()
-    .Build();
-
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -24,8 +19,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//builder.Services.Configure<JWT>(config);
-builder.Services.Configure<JWT>(config.GetSection("JWT"));
+///another way to do mapping
+//IConfiguration config = new ConfigurationBuilder()
+//    .AddJsonFile("appsettings.json")
+//    .AddEnvironmentVariables()
+//    .Build();
+
+//builder.Services.Configure<JWT>(config.GetSection("JWT"));
+
+///mapping json into object
+var jwtSection = builder.Configuration.GetSection("JWT");
+builder.Services.Configure<JWT>(jwtSection);
 
 builder.Services.AddTransient<IAuthService, AuthService>();
 

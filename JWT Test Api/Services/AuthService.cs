@@ -22,11 +22,27 @@ namespace JWT_Test_Api.Services
 
         public async Task<User?> RegisterAsync(UserDto userDto)
         {
+            //if (await _context.users.SingleOrDefaultAsync(u => u.Username == userDto.Username) is not null)
+            //{
+            //    return null;
+            //}
+
             CreatePasswordHash(userDto.Password, out byte[] passwordHash, out byte[] passwordSalt);
 
             _user.Username = userDto.Username;
             _user.PasswordHash = passwordHash;
             _user.PasswordSalt = passwordSalt;
+
+            //var user = new User
+            //{
+            //    Username = userDto.Username,
+            //    PasswordHash = passwordHash,
+            //    PasswordSalt = passwordSalt
+            //};
+
+            //await _context.users.AddAsync(user);
+            //await _context.SaveChangesAsync();
+            //return user;
 
             return _user;
         }
