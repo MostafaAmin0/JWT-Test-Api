@@ -5,6 +5,6 @@ namespace JWT_Test_Api.Services
     public interface IAuthService
     {
         Task<User?> RegisterAsync(UserDto userDto);
-        String? LoginAsync(UserDto userDto);
+        Task<string?> LoginAsync(UserDto userDto);
     }
 }

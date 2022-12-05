@@ -1,5 +1,6 @@
 ﻿using JWT_Test_Api.Helpers;
 using JWT_Test_Api.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -12,7 +13,7 @@ namespace JWT_Test_Api.Services
     {
         private readonly JWT _jwt;
         private readonly ApplicationDbContext _context;
-        private static readonly User _user = new();
+        //private static readonly User _user = new();
 
         public AuthService(IOptions<JWT> jwt, ApplicationDbContext context)
         {
@@ -22,29 +23,24 @@ namespace JWT_Test_Api.Services
 
         public async Task<User?> RegisterAsync(UserDto userDto)
         {
-            //if (await _context.users.SingleOrDefaultAsync(u => u.Username == userDto.Username) is not null)
-            //{
-            //    return null;
-            //}
+            var isUserExist = await _context.users.AnyAsync(u => u.Username == userDto.Username);
+            if (isUserExist == true)
+            {
+                return null;
+            }
 
             CreatePasswordHash(userDto.Password, out byte[] passwordHash, out byte[] passwordSalt);
 
-            _user.Username = userDto.Username;
-            _user.PasswordHash = passwordHash;
-            _user.PasswordSalt = passwordSalt;
+            var user = new User
+            {
+                Username = userDto.Username,
+                PasswordHash = passwordHash,
+                PasswordSalt = passwordSalt
+            };
 
-            //var user = new User
-            //{
-            //    Username = userDto.Username,
-            //    PasswordHash = passwordHash,
-            //    PasswordSalt = passwordSalt
-            //};
-
-            //await _context.users.AddAsync(user);
-            //await _context.SaveChangesAsync();
-            //return user;
-
-            return _user;
+            await _context.users.AddAsync(user);
+            await _context.SaveChangesAsync();
+            return user;
         }
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
@@ -54,19 +50,21 @@ namespace JWT_Test_Api.Services
             passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
         }
 
-        public string? LoginAsync(UserDto userDto)
+        public async Task<string?> LoginAsync(UserDto userDto)
         {
-            if (_user.Username != userDto.Username)
+            var user = await _context.users.FirstOrDefaultAsync(u => u.Username == userDto.Username);
+
+            if (user == null)
             {
                 return null;
             }
 
-            if (!VerifyPasswordHash(userDto.Password, _user.PasswordHash, _user.PasswordSalt))
+            if (!VerifyPasswordHash(userDto.Password, user.PasswordHash, user.PasswordSalt))
             {
                 return null;
             }
 
-            string token = CreateToken(_user);
+            string token = CreateToken(user);
 
             return token;
         }
