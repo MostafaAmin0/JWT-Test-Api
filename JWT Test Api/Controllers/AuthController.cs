@@ -1,5 +1,6 @@
 ﻿using JWT_Test_Api.Models;
 using JWT_Test_Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JWT_Test_Api.Controllers
@@ -37,6 +38,13 @@ namespace JWT_Test_Api.Controllers
             }
 
             return Ok(token);
+        }
+
+        [HttpGet("DummyAuthorization")]
+        [Authorize]
+        public IActionResult DummyAuthorization()
+        {
+            return Ok("Success");
         }
     }
 }
