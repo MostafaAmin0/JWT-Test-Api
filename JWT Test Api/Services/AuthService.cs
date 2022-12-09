@@ -2,6 +2,7 @@
 using JWT_Test_Api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Security.Claims;
 
 namespace JWT_Test_Api.Services
 {
@@ -9,11 +10,13 @@ namespace JWT_Test_Api.Services
     {
         private readonly JWT _jwt;
         private readonly ApplicationDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public AuthService(IOptions<JWT> jwt, ApplicationDbContext context)
+        public AuthService(IOptions<JWT> jwt, ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _jwt = jwt.Value;
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<User?> RegisterAsync(UserDto userDto)
@@ -56,6 +59,16 @@ namespace JWT_Test_Api.Services
             string token = PasswordUtils.CreateToken(user, _jwt);
 
             return token;
+        }
+
+        public string DummyAuthorizationTest()
+        {
+            string result = string.Empty;
+            if (_httpContextAccessor.HttpContext != null)
+            {
+                result = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Name);
+            }
+            return result;
         }
     }
 }

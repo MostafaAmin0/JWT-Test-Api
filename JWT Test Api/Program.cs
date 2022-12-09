@@ -57,7 +57,7 @@ builder.Services.Configure<JWT>(jwtSection);
 //Console.WriteLine(config.GetSection("JWT:Key").Value);
 
 builder.Services.AddTransient<IAuthService, AuthService>();
-
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

@@ -6,5 +6,7 @@ namespace JWT_Test_Api.Services
     {
         Task<User?> RegisterAsync(UserDto userDto);
         Task<string?> LoginAsync(UserDto userDto);
+
+        string DummyAuthorizationTest();
     }
 }

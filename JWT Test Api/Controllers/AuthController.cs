@@ -43,9 +43,15 @@ namespace JWT_Test_Api.Controllers
         [HttpGet("DummyAuthorization")]
         //[Authorize(Roles = "Student")]
         [Authorize(Roles = "Admin")]
-        public IActionResult DummyAuthorization()
+        public IActionResult DummyAuthorizationTest()
         {
-            return Ok("Success");
+            /// to get user name of authenticated user
+            /// this way is not best practice && accessible in controllers only 
+            //string userName = User.Identity.Name;
+
+            string result = _authService.DummyAuthorizationTest();
+
+            return Ok(result);
         }
     }
 }
