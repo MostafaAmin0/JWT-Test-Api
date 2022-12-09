@@ -53,7 +53,7 @@ namespace JWT_Test_Api.Services
                 return null;
             }
 
-            string token = PasswordUtils.CreateToken(user, _jwt.Key);
+            string token = PasswordUtils.CreateToken(user, _jwt);
 
             return token;
         }

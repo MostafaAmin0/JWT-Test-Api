@@ -16,7 +16,7 @@ namespace JWT_Test_Api.Helpers
             passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
         }
 
-        public static string CreateToken(User user, string jwtKey)
+        public static string CreateToken(User user, JWT jwt)
         {
             List<Claim> claims = new List<Claim>
             {
@@ -24,13 +24,15 @@ namespace JWT_Test_Api.Helpers
                 new Claim(ClaimTypes.Role, "Admin")
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
             var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.Now.AddDays(jwt.DurationInDays),
+                issuer: jwt.Issuer,
+                audience: jwt.Audience,
                 signingCredentials: creds
             );
 
