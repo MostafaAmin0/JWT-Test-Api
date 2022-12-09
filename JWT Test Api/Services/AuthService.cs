@@ -24,7 +24,7 @@ namespace JWT_Test_Api.Services
                 return null;
             }
 
-            TokenHelper.CreatePasswordHash(userDto.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            PasswordUtils.CreatePasswordHash(userDto.Password, out byte[] passwordHash, out byte[] passwordSalt);
 
             var user = new User
             {
@@ -48,12 +48,12 @@ namespace JWT_Test_Api.Services
                 return null;
             }
 
-            if (!TokenHelper.VerifyPasswordHash(userDto.Password, user.PasswordHash, user.PasswordSalt))
+            if (!PasswordUtils.VerifyPasswordHash(userDto.Password, user.PasswordHash, user.PasswordSalt))
             {
                 return null;
             }
 
-            string token = TokenHelper.CreateToken(user, _jwt.Key);
+            string token = PasswordUtils.CreateToken(user, _jwt.Key);
 
             return token;
         }

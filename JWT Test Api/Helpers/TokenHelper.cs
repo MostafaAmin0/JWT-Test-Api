@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 
 namespace JWT_Test_Api.Helpers
 {
-    public static class TokenHelper
+    public static class PasswordUtils
     {
         public static void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {

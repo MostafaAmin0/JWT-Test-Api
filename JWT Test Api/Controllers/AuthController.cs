@@ -14,7 +14,7 @@ namespace JWT_Test_Api.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(UserDto request)
+        public async Task<IActionResult> Register([FromBody] UserDto request)
         {
             var user = await _authService.RegisterAsync(request);
 
@@ -27,7 +27,7 @@ namespace JWT_Test_Api.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(UserDto request)
+        public async Task<IActionResult> Login([FromBody] UserDto request)
         {
             var token = await _authService.LoginAsync(request);
 
