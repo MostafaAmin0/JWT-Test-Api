@@ -41,7 +41,8 @@ namespace JWT_Test_Api.Controllers
         }
 
         [HttpGet("DummyAuthorization")]
-        [Authorize]
+        //[Authorize(Roles = "Student")]
+        [Authorize(Roles = "Admin")]
         public IActionResult DummyAuthorization()
         {
             return Ok("Success");
